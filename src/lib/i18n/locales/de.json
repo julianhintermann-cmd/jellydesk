@@ -1,0 +1,68 @@
+{
+  "common": {
+    "continue": "Weiter",
+    "back": "Zurück",
+    "skip": "Überspringen",
+    "cancel": "Abbrechen",
+    "retry": "Erneut versuchen",
+    "loading": "Lädt…",
+    "signOut": "Abmelden",
+    "close": "Schliessen",
+    "minimize": "Minimieren",
+    "maximize": "Maximieren"
+  },
+  "nav": {
+    "home": "Start",
+    "libraries": "Bibliotheken",
+    "search": "Suche",
+    "discover": "Discover",
+    "downloads": "Downloads",
+    "settings": "Einstellungen"
+  },
+  "onboarding": {
+    "server": {
+      "title": "Mit deinem Jellyfin-Server verbinden",
+      "localUrl": "Lokale Adresse",
+      "externalUrl": "Externe Adresse (optional)",
+      "connect": "Verbinden",
+      "reachable": "Erreichbar",
+      "unreachable": "Nicht erreichbar",
+      "continueAnyway": "Trotzdem weiter",
+      "invalidUrl": "Bitte eine gültige Adresse eingeben (z. B. http://192.168.1.125:8096)"
+    },
+    "login": {
+      "title": "Anmelden bei {{server}}",
+      "quickConnect": "Quick Connect",
+      "password": "Passwort",
+      "username": "Benutzername",
+      "passwordField": "Passwort",
+      "signIn": "Anmelden",
+      "quickConnectHint": "Gib diesen Code in einem angemeldeten Jellyfin-Client unter Einstellungen → Quick Connect ein.",
+      "quickConnectDisabled": "Quick Connect ist auf diesem Server deaktiviert.",
+      "waiting": "Warte auf Bestätigung…",
+      "failed": "Anmeldung fehlgeschlagen. Bitte Eingaben prüfen."
+    },
+    "seerr": {
+      "title": "Jellyseerr verbinden (optional)",
+      "description": "Mit Jellyseerr kannst du Filme und Serien anfragen. Die Anmeldung erfolgt mit deinen Jellyfin-Zugangsdaten.",
+      "localUrl": "Lokale Adresse",
+      "externalUrl": "Externe Adresse (optional)",
+      "passwordHint": "Du hast dich per Quick Connect angemeldet. Für Jellyseerr wird dein Jellyfin-Passwort einmalig benötigt. Es wird nur im Windows-Anmeldeinformationsverwalter gespeichert.",
+      "connect": "Verbinden",
+      "failed": "Verbindung zu Jellyseerr fehlgeschlagen."
+    },
+    "finish": {
+      "failed": "Anmeldung konnte nicht abgeschlossen werden. Bitte erneut versuchen."
+    }
+  },
+  "home": {
+    "greeting": "Hallo {{name}}"
+  },
+  "connection": {
+    "offline": "Offline – Server nicht erreichbar",
+    "external": "Verbunden über externe Adresse"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden"
+  }
+}
