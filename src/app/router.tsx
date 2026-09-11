@@ -77,15 +77,13 @@ export const indexRoute = createRoute({
   },
 });
 
+function SettingsPage() {
+  const { t } = useTranslation();
+  return <h1 className="text-3xl font-semibold">{t('nav.settings')}</h1>;
+}
+
 export const homeRoute = createRoute({ getParentRoute: () => shellRoute, path: '/home', component: HomePage });
-export const settingsRoute = createRoute({
-  getParentRoute: () => shellRoute,
-  path: '/settings',
-  component: () => {
-    const { t } = useTranslation();
-    return <h1 className="text-3xl font-semibold">{t('nav.settings')}</h1>;
-  },
-});
+export const settingsRoute = createRoute({ getParentRoute: () => shellRoute, path: '/settings', component: SettingsPage });
 
 const routeTree = rootRoute.addChildren([
   onboardingRoute,
