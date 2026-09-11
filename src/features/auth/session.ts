@@ -7,6 +7,7 @@ import { probeJellyfin } from '@/lib/connection/probe';
 import { getSetting, setSetting, deleteSetting } from '@/lib/tauri/settings';
 import { getCredential, setCredential, deleteCredential } from '@/lib/tauri/credentials';
 import { getDeviceName } from '@/lib/tauri/system';
+import { seerrReset } from '@/lib/seerr/client';
 import { SettingKeys, CredentialKeys } from '@/lib/settings/keys';
 
 export const APP_VERSION = '0.1.0';
@@ -127,6 +128,7 @@ export const useSession = create<SessionState>((set, get) => {
         deleteCredential(CredentialKeys.seerrPassword),
         deleteSetting(SettingKeys.authUser),
         deleteSetting(SettingKeys.seerrUser),
+        seerrReset(),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') {

@@ -32,3 +32,7 @@ export async function seerrRequest<T>(
     body: opts.body ?? null,
   });
 }
+
+export async function seerrReset(): Promise<void> {
+  await invoke('seerr_reset');
+}

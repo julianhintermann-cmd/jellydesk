@@ -35,6 +35,7 @@ pub fn run() {
             commands::seerr::seerr_set_base_url,
             commands::seerr::seerr_login,
             commands::seerr::seerr_request,
+            commands::seerr::seerr_reset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running JellyDesk");

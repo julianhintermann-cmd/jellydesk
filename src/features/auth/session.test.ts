@@ -23,6 +23,9 @@ vi.mock('@/lib/connection/probe', () => ({
     url === 'http://local' ? { ok: true, serverName: 'NAS', version: '10', id: '1' } : { ok: false, error: 'x' },
   ),
 }));
+vi.mock('@/lib/seerr/client', () => ({
+  seerrReset: vi.fn(async () => undefined),
+}));
 
 const auth = { accessToken: 'tok', userId: 'u1', userName: 'julian' };
 
@@ -107,6 +110,7 @@ describe('session', () => {
   });
 
   it('löscht beim Abmelden Token und Benutzer, behält aber die Server-URLs', async () => {
+    const { seerrReset } = await import('@/lib/seerr/client');
     await useSession.getState().boot();
     await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
     await useSession.getState().signOut();
@@ -114,6 +118,7 @@ describe('session', () => {
     expect(creds.has(CredentialKeys.jellyfinToken)).toBe(false);
     expect(settings.has(SettingKeys.authUser)).toBe(false);
     expect(settings.has(SettingKeys.serverUrls)).toBe(true);
+    expect(seerrReset).toHaveBeenCalled();
   });
 
   it('fällt bei einem Fehler beim Start auf signedOut zurück', async () => {

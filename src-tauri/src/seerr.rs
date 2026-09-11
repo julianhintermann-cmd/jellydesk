@@ -16,7 +16,7 @@ pub enum SeerrError {
 }
 
 pub struct SeerrClient {
-    http: reqwest::Client,
+    http: RwLock<reqwest::Client>,
     base_url: RwLock<Option<String>>,
 }
 
@@ -26,18 +26,27 @@ impl Default for SeerrClient {
     }
 }
 
+fn build_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .cookie_store(true)
+        .timeout(Duration::from_secs(20))
+        .build()
+        .expect("reqwest client")
+}
+
 impl SeerrClient {
     pub fn new() -> Self {
-        let http = reqwest::Client::builder()
-            .cookie_store(true)
-            .timeout(Duration::from_secs(20))
-            .build()
-            .expect("reqwest client");
-        Self { http, base_url: RwLock::new(None) }
+        Self { http: RwLock::new(build_client()), base_url: RwLock::new(None) }
     }
 
     pub async fn set_base_url(&self, url: String) {
         *self.base_url.write().await = Some(url.trim_end_matches('/').to_string());
+    }
+
+    /// Drops the cookie jar and the configured base URL, e.g. on sign-out.
+    pub async fn reset(&self) {
+        *self.http.write().await = build_client();
+        *self.base_url.write().await = None;
     }
 
     async fn base(&self) -> Result<String, SeerrError> {
@@ -46,8 +55,8 @@ impl SeerrClient {
 
     pub async fn login(&self, username: &str, password: &str) -> Result<Value, SeerrError> {
         let base = self.base().await?;
-        let res = self
-            .http
+        let http = self.http.read().await.clone();
+        let res = http
             .post(format!("{base}/api/v1/auth/jellyfin"))
             .json(&serde_json::json!({ "username": username, "password": password }))
             .send()
@@ -64,9 +73,10 @@ impl SeerrClient {
         body: Option<Value>,
     ) -> Result<Value, SeerrError> {
         let base = self.base().await?;
+        let http = self.http.read().await.clone();
         let method = reqwest::Method::from_bytes(method.as_bytes())
             .map_err(|e| SeerrError::Unreachable(e.to_string()))?;
-        let mut req = self.http.request(method, format!("{base}/api/v1{path}")).query(query);
+        let mut req = http.request(method, format!("{base}/api/v1{path}")).query(query);
         if let Some(body) = body {
             req = req.json(&body);
         }
@@ -142,5 +152,46 @@ mod tests {
         let client = SeerrClient::new();
         let err = client.request("GET", "/auth/me", &[], None).await.unwrap_err();
         assert!(matches!(err, SeerrError::NotConfigured));
+    }
+
+    #[tokio::test]
+    async fn reset_drops_cookie_and_base_url() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/v1/auth/jellyfin"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({ "id": 1, "displayName": "julian", "permissions": 2 }))
+                    .insert_header("set-cookie", "connect.sid=abc; Path=/; HttpOnly"),
+            )
+            .mount(&server)
+            .await;
+        // Only matches while the cookie is still attached to outgoing requests.
+        Mock::given(method("GET"))
+            .and(path("/api/v1/auth/me"))
+            .and(header("cookie", "connect.sid=abc"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({ "id": 1 })))
+            .mount(&server)
+            .await;
+        // Catches the request once the cookie is gone (post-reset, fresh client).
+        Mock::given(method("GET"))
+            .and(path("/api/v1/auth/me"))
+            .respond_with(ResponseTemplate::new(401))
+            .mount(&server)
+            .await;
+
+        let client = SeerrClient::new();
+        client.set_base_url(server.uri()).await;
+        client.login("julian", "pw").await.unwrap();
+        let me = client.request("GET", "/auth/me", &[], None).await.unwrap();
+        assert_eq!(me["id"], 1);
+
+        client.reset().await;
+        let err = client.request("GET", "/auth/me", &[], None).await.unwrap_err();
+        assert!(matches!(err, SeerrError::NotConfigured));
+
+        client.set_base_url(server.uri()).await;
+        let err = client.request("GET", "/auth/me", &[], None).await.unwrap_err();
+        assert!(matches!(err, SeerrError::Unauthorized));
     }
 }

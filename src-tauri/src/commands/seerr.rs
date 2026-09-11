@@ -11,6 +11,12 @@ pub async fn seerr_set_base_url(state: State<'_, AppState>, url: String) -> Resu
 }
 
 #[tauri::command]
+pub async fn seerr_reset(state: State<'_, AppState>) -> Result<(), SeerrError> {
+    state.seerr.reset().await;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn seerr_login(
     state: State<'_, AppState>,
     username: String,
