@@ -1,6 +1,7 @@
 mod commands;
 mod credentials;
 mod db;
+mod seerr;
 mod system;
 
 use std::sync::Mutex;
@@ -8,6 +9,7 @@ use tauri::Manager;
 
 pub struct AppState {
     pub db: Mutex<db::Db>,
+    pub seerr: seerr::SeerrClient,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,7 +21,7 @@ pub fn run() {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             let database = db::Db::open(&dir.join("jellydesk.db"))?;
-            app.manage(AppState { db: Mutex::new(database) });
+            app.manage(AppState { db: Mutex::new(database), seerr: seerr::SeerrClient::new() });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -30,6 +32,9 @@ pub fn run() {
             commands::credentials::credentials_get,
             commands::credentials::credentials_set,
             commands::credentials::credentials_delete,
+            commands::seerr::seerr_set_base_url,
+            commands::seerr::seerr_login,
+            commands::seerr::seerr_request,
         ])
         .run(tauri::generate_context!())
         .expect("error while running JellyDesk");
