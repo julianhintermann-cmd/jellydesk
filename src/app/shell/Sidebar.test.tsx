@@ -1,0 +1,16 @@
+import { render, screen } from '@testing-library/react';
+import { Sidebar } from '@/app/shell/Sidebar';
+
+vi.mock('@tanstack/react-router', async (orig) => ({
+  ...(await orig<typeof import('@tanstack/react-router')>()),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
+}));
+
+describe('Sidebar', () => {
+  it('zeigt die Hauptnavigation', () => {
+    render(<Sidebar />);
+    for (const label of ['Start', 'Suche', 'Discover', 'Downloads', 'Einstellungen']) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+  });
+});

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import '@/lib/i18n';
 
 // jsdom hat kein CSS.supports; @liqui-design/glass prüft es beim Import.
 if (typeof globalThis.CSS === 'undefined') {

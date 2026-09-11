@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { App } from '@/app/App';
 
+vi.mock('@/lib/tauri/system', () => ({ getSystemTransparencyEnabled: vi.fn(async () => true) }));
+
 describe('App', () => {
-  it('rendert den App-Namen', () => {
+  it('rendert die Shell mit Titelleiste', async () => {
     render(<App />);
-    expect(screen.getByText('JellyDesk')).toBeInTheDocument();
+    expect(await screen.findByText('JellyDesk')).toBeInTheDocument();
   });
 });
