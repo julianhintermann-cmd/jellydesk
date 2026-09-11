@@ -31,7 +31,17 @@ describe('session', () => {
     settings.clear();
     creds.clear();
     useSession.getState().connection?.stop();
-    useSession.setState({ status: 'booting', api: null, connection: null, user: null, urls: null });
+    useSession.setState({
+      status: 'booting',
+      api: null,
+      connection: null,
+      user: null,
+      urls: null,
+      jellyfin: null,
+      deviceId: null,
+      deviceName: 'Windows PC',
+      connectionMode: 'offline',
+    });
   });
 
   it('startet ohne Daten abgemeldet und erzeugt eine DeviceId', async () => {
@@ -74,5 +84,33 @@ describe('session', () => {
     expect(creds.has(CredentialKeys.jellyfinToken)).toBe(false);
     expect(settings.has(SettingKeys.authUser)).toBe(false);
     expect(settings.has(SettingKeys.serverUrls)).toBe(true);
+  });
+
+  it('fällt bei einem Fehler beim Start auf signedOut zurück', async () => {
+    const { getSetting } = await import('@/lib/tauri/settings');
+    vi.mocked(getSetting).mockRejectedValueOnce(new Error('ipc down'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await useSession.getState().boot();
+    expect(useSession.getState().status).toBe('signedOut');
+    errorSpy.mockRestore();
+  });
+
+  it('ermittelt das Gerät beim Anmelden, wenn vorher kein Boot lief', async () => {
+    await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
+    const s = useSession.getState();
+    expect(s.status).toBe('signedIn');
+    expect(s.deviceId).toMatch(/[0-9a-f-]{36}/);
+    expect(s.deviceName).toBe('TestPC');
+  });
+
+  it('meldet nach dem Abmelden keine Verbindungsänderungen mehr an die Session', async () => {
+    await useSession.getState().boot();
+    await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
+    const connection = useSession.getState().connection!;
+    await useSession.getState().signOut();
+    const apiBefore = useSession.getState().api;
+    await connection.connect(); // löst Listener aus, darf die Session nicht mehr verändern
+    expect(useSession.getState().api).toBe(apiBefore);
+    expect(useSession.getState().status).toBe('signedOut');
   });
 });

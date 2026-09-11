@@ -51,11 +51,20 @@ async function ensureDevice(): Promise<{ deviceId: string; deviceName: string; j
 }
 
 export const useSession = create<SessionState>((set, get) => {
+  let unsubscribe: (() => void) | null = null;
+
   async function activate(urls: ServerUrls, token: string, user: StoredUser): Promise<void> {
+    unsubscribe?.();
+    unsubscribe = null;
     get().connection?.stop();
-    const { jellyfin } = get().jellyfin ? { jellyfin: get().jellyfin! } : await ensureDevice();
+    let jellyfin = get().jellyfin;
+    if (!jellyfin) {
+      const device = await ensureDevice();
+      jellyfin = device.jellyfin;
+      set({ deviceId: device.deviceId, deviceName: device.deviceName, jellyfin });
+    }
     const connection = new ConnectionManager(urls, { probe: probeJellyfin });
-    connection.subscribe((state) => {
+    unsubscribe = connection.subscribe((state) => {
       const base = state.baseUrl ?? urls.local;
       set({ connectionMode: state.mode, api: createApi(jellyfin, base, token) });
     });
@@ -84,16 +93,21 @@ export const useSession = create<SessionState>((set, get) => {
     connectionMode: 'offline',
 
     async boot() {
-      const { deviceId, deviceName, jellyfin } = await ensureDevice();
-      set({ deviceId, deviceName, jellyfin });
-      const urls = await getSetting<ServerUrls>(SettingKeys.serverUrls);
-      const user = await getSetting<StoredUser>(SettingKeys.authUser);
-      const token = await getCredential(CredentialKeys.jellyfinToken);
-      if (urls && user && token) {
-        await activate(urls, token, user);
-        return;
+      try {
+        const { deviceId, deviceName, jellyfin } = await ensureDevice();
+        set({ deviceId, deviceName, jellyfin });
+        const urls = await getSetting<ServerUrls>(SettingKeys.serverUrls);
+        const user = await getSetting<StoredUser>(SettingKeys.authUser);
+        const token = await getCredential(CredentialKeys.jellyfinToken);
+        if (urls && user && token) {
+          await activate(urls, token, user);
+          return;
+        }
+        set({ status: 'signedOut', urls, user: null, api: null });
+      } catch (error) {
+        console.error('[session] boot failed', error);
+        set({ status: 'signedOut', user: null, api: null, connection: null, connectionMode: 'offline' });
       }
-      set({ status: 'signedOut', urls, user: null, api: null });
     },
 
     async signIn({ urls, auth, viaQuickConnect }) {
@@ -105,6 +119,8 @@ export const useSession = create<SessionState>((set, get) => {
     },
 
     async signOut() {
+      unsubscribe?.();
+      unsubscribe = null;
       get().connection?.stop();
       await deleteCredential(CredentialKeys.jellyfinToken);
       await deleteCredential(CredentialKeys.seerrPassword);
