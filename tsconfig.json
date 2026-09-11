@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
@@ -12,9 +13,10 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "noEmit": true,
     "paths": { "@/*": ["./src/*"] },
-    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    "emitDeclarationOnly": false,
+    "outDir": "./node_modules/.tsbuild"
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
