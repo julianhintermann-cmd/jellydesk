@@ -66,19 +66,22 @@ export const useSession = create<SessionState>((set, get) => {
     const connection = new ConnectionManager(urls, { probe: probeJellyfin });
     unsubscribe = connection.subscribe((state) => {
       const base = state.baseUrl ?? urls.local;
-      set({ connectionMode: state.mode, api: createApi(jellyfin, base, token) });
+      if (base !== get().api?.basePath) {
+        set({ connectionMode: state.mode, api: createApi(jellyfin, base, token) });
+      } else {
+        set({ connectionMode: state.mode });
+      }
     });
-    const state = await connection.connect();
-    connection.startRecheck();
     set({
       status: 'signedIn',
       urls,
       user,
       jellyfin,
       connection,
-      connectionMode: state.mode,
-      api: createApi(jellyfin, state.baseUrl ?? urls.local, token),
+      connectionMode: 'offline',
+      api: createApi(jellyfin, urls.local, token),
     });
+    void connection.connect().then(() => connection.startRecheck());
   }
 
   return {

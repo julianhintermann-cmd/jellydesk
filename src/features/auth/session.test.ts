@@ -70,10 +70,40 @@ describe('session', () => {
     settings.set(SettingKeys.authUser, JSON.stringify({ userId: 'u1', userName: 'julian', viaQuickConnect: true }));
     creds.set(CredentialKeys.jellyfinToken, 'tok');
     await useSession.getState().boot();
+    await vi.waitFor(() => expect(useSession.getState().connectionMode).toBe('local'));
     const s = useSession.getState();
     expect(s.status).toBe('signedIn');
-    expect(s.connectionMode).toBe('local');
     expect(s.api?.accessToken).toBe('tok');
+  });
+
+  it('verlässt den Boot-Zustand, bevor die Verbindungsprüfung fertig ist', async () => {
+    const { probeJellyfin } = await import('@/lib/connection/probe');
+    let resolveProbe: (() => void) | undefined;
+    vi.mocked(probeJellyfin).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveProbe = () => resolve({ ok: true, serverName: 'NAS', version: '10', id: '1' });
+        }),
+    );
+    settings.set(SettingKeys.serverUrls, JSON.stringify({ local: 'http://local' }));
+    settings.set(SettingKeys.authUser, JSON.stringify({ userId: 'u1', userName: 'julian', viaQuickConnect: true }));
+    creds.set(CredentialKeys.jellyfinToken, 'tok');
+    await useSession.getState().boot();
+    const s = useSession.getState();
+    expect(s.status).toBe('signedIn');
+    expect(s.api?.basePath).toBe('http://local');
+    expect(resolveProbe).toBeDefined();
+    resolveProbe?.();
+    await vi.waitFor(() => expect(useSession.getState().connectionMode).toBe('local'));
+  });
+
+  it('erzeugt das Api-Objekt nicht neu, wenn sich die Basis-URL nicht ändert', async () => {
+    await useSession.getState().boot();
+    await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
+    await vi.waitFor(() => expect(useSession.getState().connectionMode).toBe('local'));
+    const api = useSession.getState().api;
+    useSession.getState().connection!.reportFailure();
+    expect(useSession.getState().api).toBe(api);
   });
 
   it('löscht beim Abmelden Token und Benutzer, behält aber die Server-URLs', async () => {
