@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+:root {
+  --jd-base: #0a0a0f;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--jd-base);
+  color: rgba(245, 246, 255, 0.96);
+  font-family: 'Inter', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
