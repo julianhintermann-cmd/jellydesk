@@ -138,4 +138,16 @@ describe('ConnectionManager', () => {
     expect(cm.getState().mode).toBe('local');
     cm.stop();
   });
+
+  it('startet nach stop() keinen Recheck mehr', async () => {
+    const probe = probeFor({ 'http://local': () => ok });
+    const cm = new ConnectionManager({ local: 'http://local' }, { probe });
+    await cm.connect();
+    cm.stop();
+    const before = probe.mock.calls.length;
+    cm.startRecheck();
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(probe.mock.calls.length).toBe(before);
+    expect(cm.isStopped()).toBe(true);
+  });
 });

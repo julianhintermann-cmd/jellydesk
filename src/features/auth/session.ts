@@ -82,7 +82,9 @@ export const useSession = create<SessionState>((set, get) => {
       connectionMode: 'offline',
       api: createApi(jellyfin, urls.local, token),
     });
-    void connection.connect().then(() => connection.startRecheck());
+    void connection.connect().then(() => {
+      if (get().connection === connection) connection.startRecheck();
+    });
   }
 
   return {

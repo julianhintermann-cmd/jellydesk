@@ -41,6 +41,7 @@ export class ConnectionManager {
   private readonly options: ConnectionOptions;
   private generation = 0;
   private reconnectPending = false;
+  private stopped = false;
 
   constructor(
     private readonly urls: ServerUrls,
@@ -78,13 +79,20 @@ export class ConnectionManager {
   }
 
   startRecheck(): void {
-    this.stop();
+    if (this.recheckTimer) clearInterval(this.recheckTimer);
+    this.recheckTimer = null;
+    if (this.stopped) return;
     this.recheckTimer = setInterval(() => void this.recheck(), this.options.recheckMs);
   }
 
   stop(): void {
+    this.stopped = true;
     if (this.recheckTimer) clearInterval(this.recheckTimer);
     this.recheckTimer = null;
+  }
+
+  isStopped(): boolean {
+    return this.stopped;
   }
 
   reportSuccess(): void {

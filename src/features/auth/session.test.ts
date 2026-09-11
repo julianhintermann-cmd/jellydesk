@@ -1,5 +1,6 @@
 import { useSession } from '@/features/auth/session';
 import { SettingKeys, CredentialKeys } from '@/lib/settings/keys';
+import type { ProbeResult } from '@/lib/connection/probe';
 
 const settings = new Map<string, string>();
 const creds = new Map<string, string>();
@@ -147,6 +148,35 @@ describe('session', () => {
     await connection.connect(); // löst Listener aus, darf die Session nicht mehr verändern
     expect(useSession.getState().api).toBe(apiBefore);
     expect(useSession.getState().status).toBe('signedOut');
+  });
+
+  it('startet keinen Recheck, wenn die Abmeldung die Verbindungsprüfung überholt', async () => {
+    const { probeJellyfin } = await import('@/lib/connection/probe');
+    let resolveProbe: ((r: ProbeResult) => void) | undefined;
+    vi.mocked(probeJellyfin).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveProbe = resolve;
+        }),
+    );
+    await useSession.getState().boot();
+    await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
+    const connection = useSession.getState().connection!;
+    await useSession.getState().signOut();
+
+    vi.useFakeTimers();
+    try {
+      resolveProbe?.({ ok: true, serverName: 'NAS', version: '10', id: '1' });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(connection.isStopped()).toBe(true);
+
+      const before = vi.mocked(probeJellyfin).mock.calls.length;
+      await vi.advanceTimersByTimeAsync(120_000);
+      expect(vi.mocked(probeJellyfin).mock.calls.length).toBe(before);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('meldet auch ab, wenn das Löschen eines Eintrags fehlschlägt', async () => {
