@@ -39,6 +39,8 @@ export class ConnectionManager {
   private listeners = new Set<Listener>();
   private recheckTimer: ReturnType<typeof setInterval> | null = null;
   private readonly options: ConnectionOptions;
+  private generation = 0;
+  private reconnectPending = false;
 
   constructor(
     private readonly urls: ServerUrls,
@@ -62,12 +64,16 @@ export class ConnectionManager {
   }
 
   async connect(): Promise<ConnectionState> {
+    const gen = ++this.generation;
     if (await this.isUp(this.urls.local, this.options.localTimeoutMs)) {
+      if (gen !== this.generation) return this.state;
       return this.set('local', this.urls.local);
     }
     if (this.urls.external && (await this.isUp(this.urls.external, this.options.externalTimeoutMs))) {
+      if (gen !== this.generation) return this.state;
       return this.set('external', this.urls.external);
     }
+    if (gen !== this.generation) return this.state;
     return this.set('offline', null);
   }
 
@@ -89,7 +95,12 @@ export class ConnectionManager {
     const failures = this.state.consecutiveFailures + 1;
     if (failures >= this.options.failureThreshold) {
       this.set(this.state.mode, this.state.baseUrl, 0);
-      setTimeout(() => void this.connect(), 0);
+      if (this.reconnectPending) return;
+      this.reconnectPending = true;
+      setTimeout(() => {
+        this.reconnectPending = false;
+        void this.connect();
+      }, 0);
       return;
     }
     this.set(this.state.mode, this.state.baseUrl, failures);
@@ -97,21 +108,35 @@ export class ConnectionManager {
 
   private async recheck(): Promise<void> {
     if (this.state.mode === 'local') return;
-    if (await this.isUp(this.urls.local, this.options.localTimeoutMs)) {
-      this.set('local', this.urls.local);
+    if (this.state.mode === 'offline') {
+      await this.connect();
       return;
     }
-    if (this.state.mode === 'offline') await this.connect();
+    const gen = ++this.generation;
+    if (await this.isUp(this.urls.local, this.options.localTimeoutMs)) {
+      if (gen !== this.generation) return;
+      this.set('local', this.urls.local);
+    }
   }
 
   private async isUp(url: string, timeoutMs: number): Promise<boolean> {
-    const result = await this.deps.probe(url, timeoutMs);
-    return result.ok;
+    try {
+      const result = await this.deps.probe(url, timeoutMs);
+      return result.ok;
+    } catch {
+      return false;
+    }
   }
 
   private set(mode: ConnectionMode, baseUrl: string | null, consecutiveFailures = 0): ConnectionState {
     this.state = { mode, baseUrl, consecutiveFailures };
-    for (const l of this.listeners) l(this.state);
+    for (const l of this.listeners) {
+      try {
+        l(this.state);
+      } catch {
+        // listener errors must not break the manager
+      }
+    }
     return this.state;
   }
 }
