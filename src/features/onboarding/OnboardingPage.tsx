@@ -1,5 +1,7 @@
-import { useMemo, useReducer } from 'react';
+import { useMemo, useReducer, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GlassPanel } from '@/components/glass/GlassPanel';
+import { Button } from '@/components/ui/button';
 import { ServerStep } from '@/features/onboarding/ServerStep';
 import { LoginStep } from '@/features/onboarding/LoginStep';
 import { SeerrStep } from '@/features/onboarding/SeerrStep';
@@ -9,11 +11,14 @@ import { createApi } from '@/lib/jellyfin/client';
 import { useNavigate } from '@tanstack/react-router';
 
 export function OnboardingPage() {
+  const { t } = useTranslation();
   const storedUrls = useSession((s) => s.urls);
   const jellyfin = useSession((s) => s.jellyfin);
   const signIn = useSession((s) => s.signIn);
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(wizardReducer, { step: 'server' });
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string>();
 
   const api = useMemo(
     () => (state.server && jellyfin ? createApi(jellyfin, serverBaseUrl(state.server)) : null),
@@ -27,8 +32,17 @@ export function OnboardingPage() {
 
   async function finish() {
     if (!state.server || !state.auth) return;
-    await signIn({ urls: state.server.urls, auth: state.auth, viaQuickConnect: state.viaQuickConnect ?? false });
-    await navigate({ to: '/home' });
+    setFinishing(true);
+    setFinishError(undefined);
+    try {
+      await signIn({ urls: state.server.urls, auth: state.auth, viaQuickConnect: state.viaQuickConnect ?? false });
+      await navigate({ to: '/home' });
+    } catch (error) {
+      console.error('[onboarding] finish failed', error);
+      setFinishError(t('onboarding.finish.failed'));
+    } finally {
+      setFinishing(false);
+    }
   }
 
   return (
@@ -48,12 +62,22 @@ export function OnboardingPage() {
           />
         )}
         {state.step === 'seerr' && state.server && state.auth && (
-          <SeerrStep
-            jellyfinUrls={state.server.urls}
-            username={state.auth.userName}
-            password={state.password}
-            onDone={() => void finish()}
-          />
+          <div className="flex w-[440px] flex-col gap-4">
+            <SeerrStep
+              jellyfinUrls={state.server.urls}
+              username={state.auth.userName}
+              password={state.password}
+              onDone={() => void finish()}
+            />
+            {finishError && (
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-xs text-[var(--lq-danger-text)]">{finishError}</span>
+                <Button variant="accent" disabled={finishing} onClick={() => void finish()}>
+                  {t('common.retry')}
+                </Button>
+              </div>
+            )}
+          </div>
         )}
       </GlassPanel>
     </div>

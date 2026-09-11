@@ -50,6 +50,9 @@
       "passwordHint": "Du hast dich per Quick Connect angemeldet. Für Jellyseerr wird dein Jellyfin-Passwort einmalig benötigt. Es wird nur im Windows-Anmeldeinformationsverwalter gespeichert.",
       "connect": "Verbinden",
       "failed": "Verbindung zu Jellyseerr fehlgeschlagen."
+    },
+    "finish": {
+      "failed": "Anmeldung konnte nicht abgeschlossen werden. Bitte erneut versuchen."
     }
   },
   "home": {

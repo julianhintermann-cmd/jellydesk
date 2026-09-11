@@ -50,6 +50,9 @@
       "passwordHint": "You signed in with Quick Connect. Jellyseerr needs your Jellyfin password once. It is stored only in Windows Credential Manager.",
       "connect": "Connect",
       "failed": "Could not connect to Jellyseerr."
+    },
+    "finish": {
+      "failed": "Could not complete sign-in. Please try again."
     }
   },
   "home": {
