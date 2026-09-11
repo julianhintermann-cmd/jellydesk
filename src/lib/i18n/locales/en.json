@@ -1,0 +1,62 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "signOut": "Sign out",
+    "close": "Close",
+    "minimize": "Minimize",
+    "maximize": "Maximize"
+  },
+  "nav": {
+    "home": "Home",
+    "libraries": "Libraries",
+    "search": "Search",
+    "discover": "Discover",
+    "downloads": "Downloads",
+    "settings": "Settings"
+  },
+  "onboarding": {
+    "server": {
+      "title": "Connect to your Jellyfin server",
+      "localUrl": "Local address",
+      "externalUrl": "External address (optional)",
+      "connect": "Connect",
+      "reachable": "Reachable",
+      "unreachable": "Unreachable",
+      "continueAnyway": "Continue anyway",
+      "invalidUrl": "Please enter a valid address (e.g. http://192.168.1.125:8096)"
+    },
+    "login": {
+      "title": "Sign in to {{server}}",
+      "quickConnect": "Quick Connect",
+      "password": "Password",
+      "username": "Username",
+      "passwordField": "Password",
+      "signIn": "Sign in",
+      "quickConnectHint": "Enter this code in a signed-in Jellyfin client under Settings → Quick Connect.",
+      "quickConnectDisabled": "Quick Connect is disabled on this server.",
+      "waiting": "Waiting for approval…",
+      "failed": "Sign-in failed. Please check your input."
+    },
+    "seerr": {
+      "title": "Connect Jellyseerr (optional)",
+      "description": "Jellyseerr lets you request movies and shows. It signs in with your Jellyfin credentials.",
+      "localUrl": "Local address",
+      "externalUrl": "External address (optional)",
+      "passwordHint": "You signed in with Quick Connect. Jellyseerr needs your Jellyfin password once. It is stored only in Windows Credential Manager.",
+      "connect": "Connect",
+      "failed": "Could not connect to Jellyseerr."
+    }
+  },
+  "home": {
+    "greeting": "Hello {{name}}"
+  },
+  "connection": {
+    "offline": "Offline – server unreachable",
+    "external": "Connected via external address"
+  }
+}
