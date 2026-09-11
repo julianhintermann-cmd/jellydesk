@@ -1,5 +1,6 @@
 import { LiquiThemeProvider, defaultGlassTheme, type LiquiGlassTheme } from '@liqui-design/glass';
 import { GlassPanel } from '@/components/glass/GlassPanel';
+import { useSystemAppearanceSync } from '@/features/appearance/useSystemAppearanceSync';
 
 export const jellyDeskGlassTheme: Partial<LiquiGlassTheme> = {
   profile: 'squircle',
@@ -10,6 +11,8 @@ export const jellyDeskGlassTheme: Partial<LiquiGlassTheme> = {
 };
 
 export function App() {
+  useSystemAppearanceSync();
+
   return (
     <LiquiThemeProvider theme={{ glass: { ...defaultGlassTheme, ...jellyDeskGlassTheme } }}>
       <main className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#3b2a6b,transparent_55%),radial-gradient(circle_at_70%_80%,#0f4c5c,transparent_50%)]">
