@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Compass, Download, Home, Search, Settings, type LucideIcon } from 'lucide-react';
+import { Home, Settings, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GlassPanel } from '@/components/glass/GlassPanel';
 
@@ -9,11 +9,10 @@ interface NavItem {
   icon: LucideIcon;
 }
 
+// Search, Discover and Downloads return with Plans 3, 5 and 6 respectively —
+// keep them out of the nav until the routes behind them actually exist.
 const ITEMS: NavItem[] = [
   { to: '/home', labelKey: 'nav.home', icon: Home },
-  { to: '/search', labelKey: 'nav.search', icon: Search },
-  { to: '/discover', labelKey: 'nav.discover', icon: Compass },
-  { to: '/downloads', labelKey: 'nav.downloads', icon: Download },
   { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 

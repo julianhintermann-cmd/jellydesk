@@ -9,8 +9,13 @@ vi.mock('@tanstack/react-router', async (orig) => ({
 describe('Sidebar', () => {
   it('zeigt die Hauptnavigation', () => {
     render(<Sidebar />);
-    for (const label of ['Start', 'Suche', 'Discover', 'Downloads', 'Einstellungen']) {
+    for (const label of ['Start', 'Einstellungen']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
+  });
+
+  it('blendet noch nicht gebaute Bereiche aus', () => {
+    render(<Sidebar />);
+    expect(screen.queryByText('Suche')).not.toBeInTheDocument();
   });
 });

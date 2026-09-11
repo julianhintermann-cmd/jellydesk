@@ -61,5 +61,8 @@
   "connection": {
     "offline": "Offline – Server nicht erreichbar",
     "external": "Verbunden über externe Adresse"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden"
   }
 }
