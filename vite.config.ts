@@ -23,5 +23,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // @liqui-design/glass imports its stylesheet as a side effect
+    // (`import './glass.css'`); Vitest's default dep externalization hands
+    // that straight to Node's ESM loader, which doesn't know `.css`. Inlining
+    // the package routes it through Vite's pipeline instead, where `css:
+    // false` above turns the import into a no-op.
+    server: { deps: { inline: ['@liqui-design/glass'] } },
   },
 });
