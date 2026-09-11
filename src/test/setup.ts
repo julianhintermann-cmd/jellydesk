@@ -16,3 +16,9 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   }
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserverStub;
 }
+
+import { server } from '@/test/msw';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
