@@ -113,4 +113,17 @@ describe('session', () => {
     expect(useSession.getState().api).toBe(apiBefore);
     expect(useSession.getState().status).toBe('signedOut');
   });
+
+  it('meldet auch ab, wenn das Löschen eines Eintrags fehlschlägt', async () => {
+    const { deleteCredential } = await import('@/lib/tauri/credentials');
+    await useSession.getState().boot();
+    await useSession.getState().signIn({ urls: { local: 'http://local' }, auth, viaQuickConnect: false });
+    vi.mocked(deleteCredential).mockRejectedValueOnce(new Error('keyring locked'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(useSession.getState().signOut()).resolves.toBeUndefined();
+    expect(useSession.getState().status).toBe('signedOut');
+    expect(useSession.getState().api).toBeNull();
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });

@@ -10,8 +10,13 @@ export function HomePage() {
   const navigate = useNavigate();
 
   async function handleSignOut() {
-    await signOut();
-    await navigate({ to: '/onboarding' });
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('[home] sign-out failed', error);
+    } finally {
+      await navigate({ to: '/onboarding' });
+    }
   }
 
   return (

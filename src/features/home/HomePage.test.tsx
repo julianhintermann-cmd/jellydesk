@@ -10,6 +10,10 @@ vi.mock('@tanstack/react-router', async (orig) => ({
 }));
 
 describe('HomePage', () => {
+  beforeEach(() => {
+    navigate.mockClear();
+  });
+
   it('begrüsst den Benutzer und meldet ab', async () => {
     const signOut = vi.fn(async () => undefined);
     useSession.setState({ user: { userId: 'u', userName: 'Julian', viaQuickConnect: false }, signOut });
@@ -18,5 +22,17 @@ describe('HomePage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Abmelden' }));
     expect(signOut).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith({ to: '/onboarding' });
+  });
+
+  it('navigiert auch bei fehlgeschlagenem Abmelden zum Onboarding', async () => {
+    const signOut = vi.fn(async () => {
+      throw new Error('boom');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    useSession.setState({ user: { userId: 'u', userName: 'Julian', viaQuickConnect: false }, signOut });
+    render(<HomePage />);
+    await userEvent.click(screen.getByRole('button', { name: 'Abmelden' }));
+    expect(navigate).toHaveBeenCalledWith({ to: '/onboarding' });
+    errorSpy.mockRestore();
   });
 });

@@ -119,13 +119,20 @@ export const useSession = create<SessionState>((set, get) => {
     },
 
     async signOut() {
+      const results = await Promise.allSettled([
+        deleteCredential(CredentialKeys.jellyfinToken),
+        deleteCredential(CredentialKeys.seerrPassword),
+        deleteSetting(SettingKeys.authUser),
+        deleteSetting(SettingKeys.seerrUser),
+      ]);
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          console.error('[session] sign-out cleanup failed', result.reason);
+        }
+      }
       unsubscribe?.();
       unsubscribe = null;
       get().connection?.stop();
-      await deleteCredential(CredentialKeys.jellyfinToken);
-      await deleteCredential(CredentialKeys.seerrPassword);
-      await deleteSetting(SettingKeys.authUser);
-      await deleteSetting(SettingKeys.seerrUser);
       set({ status: 'signedOut', user: null, api: null, connection: null, connectionMode: 'offline' });
     },
   };
