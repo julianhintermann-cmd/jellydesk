@@ -1,4 +1,9 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  seerrSetBaseUrl as rawSetBaseUrl,
+  seerrLogin as rawLogin,
+  seerrRequest as rawRequest,
+  seerrReset,
+} from '@/lib/tauri/seerr';
 
 export interface SeerrUser {
   id: number;
@@ -9,14 +14,11 @@ export interface SeerrUser {
 export type SeerrMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 export async function seerrSetBaseUrl(url: string): Promise<void> {
-  await invoke('seerr_set_base_url', { url });
+  await rawSetBaseUrl(url);
 }
 
 export async function seerrLogin(username: string, password: string): Promise<SeerrUser> {
-  const user = await invoke<{ id: number; displayName?: string; permissions?: number }>('seerr_login', {
-    username,
-    password,
-  });
+  const user = await rawLogin(username, password);
   return { id: user.id, displayName: user.displayName ?? username, permissions: user.permissions ?? 0 };
 }
 
@@ -25,14 +27,7 @@ export async function seerrRequest<T>(
   path: string,
   opts: { query?: Record<string, string>; body?: unknown } = {},
 ): Promise<T> {
-  return invoke<T>('seerr_request', {
-    method,
-    path,
-    query: opts.query ? Object.entries(opts.query) : null,
-    body: opts.body ?? null,
-  });
+  return rawRequest<T>(method, path, opts);
 }
 
-export async function seerrReset(): Promise<void> {
-  await invoke('seerr_reset');
-}
+export { seerrReset };

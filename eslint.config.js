@@ -13,4 +13,20 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/tauri/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@tauri-apps/api/core', message: 'Tauri IPC only via src/lib/tauri/*' },
+            { name: '@tauri-apps/api/window', message: 'Tauri IPC only via src/lib/tauri/*' },
+            { name: '@tauri-apps/plugin-os', message: 'Tauri IPC only via src/lib/tauri/*' },
+          ],
+        },
+      ],
+    },
+  },
 );
