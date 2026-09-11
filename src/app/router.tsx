@@ -10,16 +10,22 @@ import { Shell } from '@/app/shell/Shell';
 import { HomePage } from '@/features/home/HomePage';
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage';
 import { BackdropLayer } from '@/app/shell/BackdropLayer';
+import { Titlebar } from '@/app/shell/Titlebar';
+import { useSession } from '@/features/auth/session';
 
 export const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
 export const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
+  beforeLoad: () => {
+    if (useSession.getState().status === 'signedIn') throw redirect({ to: '/home' });
+  },
   component: () => (
-    <div className="relative h-full">
+    <div className="relative flex h-full flex-col">
       <BackdropLayer />
-      <div className="relative h-full">
+      <Titlebar />
+      <div className="relative min-h-0 flex-1">
         <OnboardingPage />
       </div>
     </div>
@@ -29,6 +35,9 @@ export const onboardingRoute = createRoute({
 export const shellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'shell',
+  beforeLoad: () => {
+    if (useSession.getState().status !== 'signedIn') throw redirect({ to: '/onboarding' });
+  },
   component: Shell,
 });
 

@@ -24,6 +24,7 @@ tauri = { version = "2.11.3", features = [] }
 tauri-plugin-opener = "2.5.5"
 rusqlite = { version = "0.32", features = ["bundled"] }
 keyring = { version = "3", features = ["windows-native"] }
+tauri-plugin-os = "2.3.2"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55"

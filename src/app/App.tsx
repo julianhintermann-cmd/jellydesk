@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { RouterProvider } from '@tanstack/react-router';
 import { LiquiThemeProvider, defaultGlassTheme, type LiquiGlassTheme } from '@liqui-design/glass';
 import { router } from '@/app/router';
 import { useSystemAppearanceSync } from '@/features/appearance/useSystemAppearanceSync';
+import { useSession } from '@/features/auth/session';
 
 export const jellyDeskGlassTheme: Partial<LiquiGlassTheme> = {
   profile: 'squircle',
@@ -13,9 +15,15 @@ export const jellyDeskGlassTheme: Partial<LiquiGlassTheme> = {
 
 export function App() {
   useSystemAppearanceSync();
+  const status = useSession((s) => s.status);
+  const boot = useSession((s) => s.boot);
+  useEffect(() => {
+    if (status === 'booting') void boot();
+  }, [status, boot]);
+
   return (
     <LiquiThemeProvider theme={{ glass: { ...defaultGlassTheme, ...jellyDeskGlassTheme } }}>
-      <RouterProvider router={router} />
+      {status === 'booting' ? <div className="h-full bg-[var(--jd-base)]" /> : <RouterProvider router={router} />}
     </LiquiThemeProvider>
   );
 }

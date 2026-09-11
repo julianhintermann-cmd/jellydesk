@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+
 export function OnboardingPage() {
-  return <div className="flex h-full items-center justify-center">Onboarding</div>;
+  const { t } = useTranslation();
+  return <div className="flex h-full items-center justify-center">{t('onboarding.server.title')}</div>;
 }
